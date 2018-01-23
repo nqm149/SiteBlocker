@@ -1,0 +1,4 @@
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker.csprojResolveAssemblyReference.cache
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\MainWindow.g.cs
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker_MarkupCompile.cache
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker_MarkupCompile.lref
