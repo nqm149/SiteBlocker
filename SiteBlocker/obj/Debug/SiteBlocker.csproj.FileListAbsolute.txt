@@ -1,4 +1,16 @@
-C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker.csprojResolveAssemblyReference.cache
 C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\MainWindow.g.cs
 C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker_MarkupCompile.cache
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\bin\Debug\SiteBlocker.exe.config
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\bin\Debug\SiteBlocker.exe
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\bin\Debug\SiteBlocker.pdb
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\App.g.cs
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\MainWindow.baml
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker.g.resources
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker.Properties.Resources.resources
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker.csproj.GenerateResource.Cache
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker.csproj.CoreCompileInputs.cache
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker.exe
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker.pdb
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\GeneratedInternalTypeHelper.g.cs
 C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker_MarkupCompile.lref
+C:\Users\nqm20\Source\Repos\SiteBlocker\SiteBlocker\obj\Debug\SiteBlocker.csprojResolveAssemblyReference.cache
