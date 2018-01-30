@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Threading;
+using SiteBlocker.Constant;
 using SiteBlocker.Models;
 using SiteBlocker.Properties;
 using Application = System.Windows.Application;
@@ -19,12 +20,10 @@ namespace SiteBlocker
     /// </summary>
     public partial class MainWindow : INotifyPropertyChanged
     {
-        private const string HostsPath = "C:\\Windows\\System32\\drivers\\etc\\hosts";
-        private static readonly List<string> browsers = new List<string> { "chrome", "MicrosoftEdge", "firefox" };
-        private static readonly List<string> defaultSites = new List<string> { "www.facebook.com", "www.youtube.com" };
-        private const string DefaultUrlPrefix = "http://";
+        private static readonly List<string> browsers = Const.DefaultBrowsers;
+        private static readonly List<string> defaultSites = Const.DefaultSites;
 
-        private const string DefaultHost = "127.0.0.1 ";
+        private const string DefaultHost = Const.DefaultHost;
         private readonly string _originalContent;
         DispatcherTimer _timer;
         private Process[] processes;
@@ -34,9 +33,9 @@ namespace SiteBlocker
         public MainWindow()
         {
             InitializeComponent();
-            using (var sr = new StreamReader(HostsPath))
+            using (var sr = new StreamReader(Const.HostsPath))
                 _originalContent = sr.ReadToEndAsync().Result;
-            Debug.WriteLine("Read hosts file's original content.");
+            Debug.WriteLine(Const.READ_HOSTS_FILE_MSG);
 
             // adding default sites
             foreach (var site in defaultSites)
@@ -50,7 +49,7 @@ namespace SiteBlocker
         }
         private void AddUrl()
         {
-            var modelNewUri = $"{DefaultUrlPrefix}{NewUri}".Trim();
+            var modelNewUri = $"{Const.DefaultUrlPrefix}{Model.NewUri}".Trim();
             if (Uri.TryCreate(modelNewUri, UriKind.Absolute, out _))
             {
                 Model.Input.Add(new InputItem(modelNewUri));
@@ -58,7 +57,7 @@ namespace SiteBlocker
             }
             else
             {
-                MessageBox.Show("Not a URI.");
+                MessageBox.Show(Const.NOT_A_URL_ERROR_MSG);
             }
         }
 
@@ -68,16 +67,15 @@ namespace SiteBlocker
             Model.Input.Remove(urlItem);
         }
 
-        private void StartBtn(object sender, RoutedEventArgs e)
+        private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
-            foreach (var browser in browsers)
+            if (ReadyToBlock())
             {
-                if (StillHasProcess(browser))
-                {
-                    var dialogResult = MessageBox.Show("This will close all your opening browsers and tabs and block Facebook !",
-                            "Warning", MessageBoxButton.OKCancel);
 
-                    if (dialogResult == MessageBoxResult.OK)
+                var dialogResult = MessageBox.Show(Const.CLOSE_ALL_BROWSERS_MSG, "Warning", MessageBoxButton.OKCancel);
+                if (dialogResult == MessageBoxResult.OK)
+                {
+                    foreach (var browser in browsers)
                     {
                         //first, close all browsers
                         while (StillHasProcess(browser))
@@ -86,29 +84,44 @@ namespace SiteBlocker
 
                             foreach (var p in processes)
                             {
-                                Debug.WriteLine($"Found browser related process. Close it now. {p.ProcessName}");
+                                Debug.WriteLine($"{Const.FOUND_PROCESS_LOG_MSG} {p.ProcessName}");
                                 p.CloseMainWindow();
                             }
                         }
                     }
-                    else if (dialogResult == MessageBoxResult.Cancel)
-                    {
-                        //do nothing
-                    }
+
+                    Model.StartBtnStatus = false;
+                    Model.StopBtnStatus = true;
+
+                    BlockSite();
+
                 }
-
+                else if (dialogResult == MessageBoxResult.Cancel)
+                {
+                    //do nothing
+                }
             }
-
-            BlockSite();
-
+        }
+        private void AddBtn_Click(object sender, RoutedEventArgs e)
+        {
+            AddUrl();
         }
 
-        private void StopBtn(object sender, RoutedEventArgs e)
+        private void ClearBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Model.Input.Clear();
+        }
+
+        private void StopBtn_Click(object sender, RoutedEventArgs e)
         {
             RestoreHostsFile();
-            MessageBox.Show("Now you can access Facebook again !");
-            _timer.Stop();
+            MessageBox.Show(Const.OK_TO_ACCESS_MSG);
+
+            _timer?.Stop();
+
             TimeLeft.Text = "00:00:00";
+
+            Model.StartBtnStatus = true;
         }
 
         private bool StillHasProcess(string processName) => Process.GetProcesses().Any(p => p.ProcessName == processName);
@@ -117,10 +130,11 @@ namespace SiteBlocker
 
         private void RestoreHostsFile()
         {
-            using (var sw = new StreamWriter(HostsPath, false))
+            using (var sw = new StreamWriter(Const.HostsPath, false))
                 sw.WriteAsync(_originalContent);
-            Debug.WriteLine("Restore hosts file's original content.");
+            Debug.WriteLine(Const.RESTORE_HOSTS_FILE_MSG);
         }
+
         private void BlockSite()
         {
             //then do the magic
@@ -129,7 +143,7 @@ namespace SiteBlocker
             try
             {
 
-                using (var sw = new StreamWriter(HostsPath, true))
+                using (var sw = new StreamWriter(Const.HostsPath, true))
                 {
                     foreach (var url in Model.Input)
                     {
@@ -137,7 +151,7 @@ namespace SiteBlocker
                     }
                 }
 
-                MessageBox.Show("Blocked Facebook !");
+                MessageBox.Show(Const.BLOCK_SITES_MSG);
             }
             catch (Exception exception)
             {
@@ -151,12 +165,15 @@ namespace SiteBlocker
                 if (time == TimeSpan.Zero)
                 {
                     _timer.Stop();
-                    using (var sw = new StreamWriter(HostsPath, false))
+                    using (var sw = new StreamWriter(Const.HostsPath, false))
                     {
                         sw.WriteAsync(_originalContent);
                     }
 
-                    MessageBox.Show("Now you can access Facebook again !");
+                    Model.StartBtnStatus = true;
+                    Model.StopBtnStatus = false;
+
+                    MessageBox.Show(Const.OK_TO_ACCESS_MSG);
                 }
                 time = time.Add(TimeSpan.FromSeconds(-1));
             }, Application.Current.Dispatcher);
@@ -165,22 +182,48 @@ namespace SiteBlocker
 
         }
 
-        private void AddBtn_Click(object sender, RoutedEventArgs e)
-        {
-            AddUrl();
-        }
-
-        private void ClearBtn_Click(object sender, RoutedEventArgs e)
-        {
-            Model.Input.Clear();
-        }
-
         public event PropertyChangedEventHandler PropertyChanged;
 
         [NotifyPropertyChangedInvocator]
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private bool ReadyToBlock()
+        {
+            if (Model.Input.Count == 0)
+            {
+                MessageBox.Show(Const.INPUT_URL_WARNING_MSG);
+                return false;
+            }
+
+            var validateResult = ValidateTime(TimeSet.Text);
+            if (validateResult.IsOK == false)
+            {
+                MessageBox.Show(validateResult.Message);
+                return false;
+            }
+
+            return true;
+        }
+
+        private ValidateResult ValidateTime(string time)
+        {
+            try
+            {
+                int.TryParse(time, out var intTime);
+                if (intTime > 0)
+                    return new ValidateResult(true, "", intTime);
+                else
+                    return new ValidateResult(false, Const.INPUT_TIME_WARNING_MSG, 0);
+            }
+            catch (FormatException e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+
         }
     }
 

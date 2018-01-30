@@ -66,6 +66,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Compile Include="Constant\Const.cs" />
     <Compile Include="InputItem.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -74,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\Model.cs" />
+    <Compile Include="Models\ValidateResult.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>

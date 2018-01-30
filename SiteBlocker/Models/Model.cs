@@ -15,6 +15,8 @@ namespace SiteBlocker.Models
     {
         private readonly StringBuilder log = new StringBuilder();
         private string newUri;
+        private bool startBtnStatus = true;
+        private bool stopBtnStatus;
 
         /// <summary>
         /// See <see cref="INotifyPropertyChanged" />
@@ -35,6 +37,36 @@ namespace SiteBlocker.Models
                 }
 
                 newUri = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool StartBtnStatus
+        {
+            get => startBtnStatus;
+            set
+            {
+                if (value == startBtnStatus)
+                {
+                    return;
+                }
+
+                startBtnStatus = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public bool StopBtnStatus
+        {
+            get => stopBtnStatus;
+            set
+            {
+                if (value == stopBtnStatus)
+                {
+                    return;
+                }
+
+                stopBtnStatus = value;
                 OnPropertyChanged();
             }
         }
