@@ -1,5 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -75,6 +77,7 @@ namespace SiteBlocker.Models
         /// Gets initial Crawling URIs.
         /// </summary>
         public ObservableCollection<InputItem> Input { get; } = new ObservableCollection<InputItem>();
+        public ObservableCollection<BrowserItem> BrowserList { get; } = new ObservableCollection<BrowserItem>();
 
         /// <summary>
         /// Gets uRIs found by searching.
@@ -97,7 +100,8 @@ namespace SiteBlocker.Models
         /// <param name="line">Line to add.</param>
         public void AddLogLine(string line)
         {
-            log.AppendLine(line);
+            var culture = new CultureInfo("en-GB");
+            log.AppendLine($"{DateTime.Now.ToString(culture)} : {line}");
             OnPropertyChanged(nameof(Log));
         }
 

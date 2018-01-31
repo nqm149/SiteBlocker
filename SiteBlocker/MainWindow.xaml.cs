@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 using SiteBlocker.Constant;
 using SiteBlocker.Models;
@@ -35,11 +36,18 @@ namespace SiteBlocker
             InitializeComponent();
             using (var sr = new StreamReader(Const.HostsPath))
                 _originalContent = sr.ReadToEndAsync().Result;
-            Debug.WriteLine(Const.READ_HOSTS_FILE_MSG);
-
-            // adding default sites
+            Model.AddLogLine(Const.READ_HOSTS_FILE_MSG);
+            
+            // add default sites
             foreach (var site in defaultSites)
                 Model.Input.Add(new InputItem(site));
+
+            // add detected browsers
+            DetectBrowsers().ForEach(b => Model.BrowserList.Add(b));
+            if (Model.BrowserList.Count == 0)
+            {
+                Model.BrowserList.Add(new BrowserItem("No browser was detected. Please scan again.", false));
+            }
         }
 
         public void CloseWindow(object sender, CancelEventArgs cancelEventArgs)
@@ -71,24 +79,11 @@ namespace SiteBlocker
         {
             if (ReadyToBlock())
             {
-
                 var dialogResult = MessageBox.Show(Const.CLOSE_ALL_BROWSERS_MSG, "Warning", MessageBoxButton.OKCancel);
                 if (dialogResult == MessageBoxResult.OK)
                 {
-                    foreach (var browser in browsers)
-                    {
-                        //first, close all browsers
-                        while (StillHasProcess(browser))
-                        {
-                            processes = GetAllProcessesByName(browser);
-
-                            foreach (var p in processes)
-                            {
-                                Debug.WriteLine($"{Const.FOUND_PROCESS_LOG_MSG} {p.ProcessName}");
-                                p.CloseMainWindow();
-                            }
-                        }
-                    }
+                    var okToCloseBrowserList = OKToCloseBrowserList();
+                    CloseBrowsers(okToCloseBrowserList);
 
                     Model.StartBtnStatus = false;
                     Model.StopBtnStatus = true;
@@ -102,6 +97,65 @@ namespace SiteBlocker
                 }
             }
         }
+
+        private void CloseBrowsers(List<BrowserItem> browserItems)
+        {
+            if (browserItems == null)
+                throw new ArgumentNullException($"No browser in detected browsers List");
+
+            foreach (var browser in browserItems)
+            {
+                //first, close all browsers
+                while (HasProcess(browser.BrowserName))
+                {
+                    processes = GetAllProcessesByName(browser.BrowserName);
+
+                    foreach (var p in processes)
+                    {
+                        //                        p.CloseMainWindow();
+                        //                        p.Close();
+                        try
+                        {
+                            p.Kill();
+                            p.WaitForExit();
+                        }
+                        catch (Exception e)
+                        {
+                            Debug.WriteLine(e);
+                            // ignore this exception
+                        }
+                        
+                    }
+
+                    Model.AddLogLine($"{Const.FOUND_PROCESS_LOG_MSG} {browser.BrowserName}");
+                    Debug.WriteLine($"{Const.FOUND_PROCESS_LOG_MSG} {browser.BrowserName}");
+                }
+            }
+        }
+
+        private List<BrowserItem> DetectBrowsers()
+        {
+            var detectedBrowsers = new List<BrowserItem>();
+            foreach (var browser in browsers)
+            {
+                //first, close all browsers
+                if (HasProcess(browser))
+                {
+                    var newDectectedBrowser = new BrowserItem(browser, true);
+                    if (detectedBrowsers.Contains(newDectectedBrowser) == false)
+                    {
+                        detectedBrowsers.Add(newDectectedBrowser);
+                        Model.AddLogLine($"{browser} has has been detected.");
+                    }
+                }
+            }
+
+            return detectedBrowsers;
+        }
+
+        private List<BrowserItem> OKToCloseBrowserList() =>
+            Model.BrowserList.Where(b => b.BrowserCheckbox == true).ToList();
+
         private void AddBtn_Click(object sender, RoutedEventArgs e)
         {
             AddUrl();
@@ -109,7 +163,7 @@ namespace SiteBlocker
 
         private void ClearBtn_Click(object sender, RoutedEventArgs e)
         {
-            Model.Input.Clear();
+            Model.NewUri = string.Empty;
         }
 
         private void StopBtn_Click(object sender, RoutedEventArgs e)
@@ -120,11 +174,13 @@ namespace SiteBlocker
             _timer?.Stop();
 
             TimeLeft.Text = "00:00:00";
+            TimeLeft.Foreground = Brushes.Black;
 
             Model.StartBtnStatus = true;
+            Model.StopBtnStatus = false;
         }
 
-        private bool StillHasProcess(string processName) => Process.GetProcesses().Any(p => p.ProcessName == processName);
+        private bool HasProcess(string processName) => Process.GetProcesses().Any(p => p.ProcessName == processName);
 
         private Process[] GetAllProcessesByName(string processName) => Process.GetProcessesByName(processName);
 
@@ -132,7 +188,7 @@ namespace SiteBlocker
         {
             using (var sw = new StreamWriter(Const.HostsPath, false))
                 sw.WriteAsync(_originalContent);
-            Debug.WriteLine(Const.RESTORE_HOSTS_FILE_MSG);
+            Model.AddLogLine(Const.RESTORE_HOSTS_FILE_MSG);
         }
 
         private void BlockSite()
@@ -151,7 +207,8 @@ namespace SiteBlocker
                     }
                 }
 
-                MessageBox.Show(Const.BLOCK_SITES_MSG);
+                MessageBox.Show($"Sites will be blocked for {TimeSet.Text} seconds ! Click \"Stop\" to access again. ");
+                Model.AddLogLine($"Sites will be blocked for {TimeSet.Text} seconds ! Click \"Stop\" to access again. ");
             }
             catch (Exception exception)
             {
@@ -165,6 +222,7 @@ namespace SiteBlocker
                 if (time == TimeSpan.Zero)
                 {
                     _timer.Stop();
+                    TimeLeft.Foreground = Brushes.Black;
                     using (var sw = new StreamWriter(Const.HostsPath, false))
                     {
                         sw.WriteAsync(_originalContent);
@@ -174,12 +232,13 @@ namespace SiteBlocker
                     Model.StopBtnStatus = false;
 
                     MessageBox.Show(Const.OK_TO_ACCESS_MSG);
+                    Model.AddLogLine(Const.OK_TO_ACCESS_MSG); 
                 }
                 time = time.Add(TimeSpan.FromSeconds(-1));
             }, Application.Current.Dispatcher);
 
             _timer.Start();
-
+            TimeLeft.Foreground = Brushes.Red;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -224,6 +283,19 @@ namespace SiteBlocker
                 throw;
             }
 
+        }
+
+        private void TextBlock_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            LogScrollViewer.ScrollToBottom();
+        }
+
+        private void RefreshBtn_Click(object sender, RoutedEventArgs e)
+        {
+            Model.BrowserList.Clear();
+            DetectBrowsers().ForEach(b => Model.BrowserList.Add(b));
+            if (Model.BrowserList.Count == 0)
+                Model.BrowserList.Add(new BrowserItem("No browser was detected. Please scan again.", false));
         }
     }
 

@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         d:DataContext="{d:DesignInstance models:Model}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="300.764" Width="493"
+        Title="MainWindow" Height="Auto" SizeToContent="Height"  Width="490"
         ResizeMode="NoResize"
         Closing="CloseWindow">
     <Window.DataContext>
@@ -14,17 +14,37 @@
     </Window.DataContext>
     <Grid Margin="0,0,4,0">
         <Grid.RowDefinitions>
-            <RowDefinition Height="10*"/>
-            <RowDefinition Height="19*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="50*"/>
-            <ColumnDefinition Width="15*"/>
+            <ColumnDefinition Width="5"/>
+            <ColumnDefinition Width="5*"/>
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="1*"/>
+
         </Grid.ColumnDefinitions>
-        <Label Grid.Column="0" Grid.Row="0" Content="Block these sites for :" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="26" Width="121"/>
-        <TextBox Grid.Column="0" Grid.Row="0" Name="TimeSet" HorizontalAlignment="Left" Height="26" Margin="132,10,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="50"/>
-        <Label Grid.Column="0" Grid.Row="0" Content="seconds" HorizontalAlignment="Left" Margin="187,10,0,0" VerticalAlignment="Top" Height="26" Width="53"/>
-        <DataGrid Grid.Column="0" Grid.Row="1" AutoGenerateColumns="false" CanUserAddRows="False" ItemsSource="{Binding Input}" Margin="10,10,10,10">
+        <Grid Grid.Column="1" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="1.5*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" HorizontalAlignment="Left" TextWrapping="Wrap" Text="http://" Margin="0,0,0,0"/>
+            <TextBox Grid.Column="1" Name="NewUri" Text="{Binding NewUri, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Stretch" Height="23" TextWrapping="Wrap" />
+            <Button Grid.Column="2" Name="ClearBtn" Content="X" HorizontalAlignment="Stretch" Height="23" Click="ClearBtn_Click" />
+            <Button Grid.Column="3"  Name="AddBtn" Content="Add" HorizontalAlignment="Stretch" Click="AddBtn_Click" />
+
+        </Grid>
+        <TextBlock Grid.Column="1" Grid.Row="0" Margin="0,0,0,10">Add a URL to block list.</TextBlock>
+        <DataGrid Grid.Column="1" Grid.Row="3" AutoGenerateColumns="false" CanUserAddRows="False" ItemsSource="{Binding Input}" Margin="0,10,0,0">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Url" Width="*"  Binding="{Binding Uri}" IsReadOnly="True" />
                 <DataGridTemplateColumn Header="Remove" Width="Auto">
@@ -37,14 +57,47 @@
                 </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <TextBox Grid.Column="0" Grid.Row="0" Name="NewUri" Text="{Binding NewUri, UpdateSourceTrigger=PropertyChanged}"  HorizontalAlignment="Left" Height="23" Margin="49,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="212"/>
-        <Button Grid.Column="0" Grid.Row="0" Name="AddBtn"  Content="Add" HorizontalAlignment="Left" Margin="306,56,0,0" VerticalAlignment="Top" Width="56" Height="23" Click="AddBtn_Click" RenderTransformOrigin="1.734,0.598"/>
-        <Button Grid.Column="0" Grid.Row="0" Name="ClearBtn"  Content="X" HorizontalAlignment="Left" Margin="260,56,0,0" VerticalAlignment="Top" Width="19" Height="23" Click="ClearBtn_Click" RenderTransformOrigin="1.734,0.598"/>
-        <Button Grid.Column="1" Grid.Row="1" Content="Start" IsEnabled="{Binding StartBtnStatus}" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Width="92" Height="26" Click="StartBtn_Click"/>
-        <Button Grid.Column="1" Grid.Row="1" Content="Stop" IsEnabled="{Binding StopBtnStatus}" HorizontalAlignment="Left" Margin="0,41,0,0" VerticalAlignment="Top" Width="92" Height="26" Click="StopBtn_Click" RenderTransformOrigin="0.205,2.51"/>
-        <TextBlock Grid.Column="1" Grid.Row="1" Name="TimeLeft" FontSize="25" HorizontalAlignment="Left" Margin="0,109,0,0" TextWrapping="Wrap" Text="00:00:00" VerticalAlignment="Top" Height="33" Width="92"/>
-        <TextBlock Grid.Column="1" Grid.Row="1"  HorizontalAlignment="Left" Margin="0,93,0,0" TextWrapping="Wrap" Text="Time left :" VerticalAlignment="Top" Height="16" Width="52"/>
-        <TextBlock Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" Margin="10,57,0,0" TextWrapping="Wrap" Text="http://" VerticalAlignment="Top" Height="16" Width="34"/>
+
+        <TextBlock Grid.Column="1" Grid.Row="4" Margin="0,20,0,0">
+            You are opening following browsers on your computer.
+            <LineBreak/>
+            You may need to close them to block the above sites.
+        </TextBlock>
+
+        <Button Grid.Column="1" Grid.Row="4" Name="Refresh" Content="&#xE72C;" Width="35" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Right" Click="RefreshBtn_Click" Margin="0,20,0,0"></Button>
+        <!-- Browsers settings -->
+        <DataGrid Grid.Column="1" Grid.Row="5" AutoGenerateColumns="false" CanUserAddRows="False" ItemsSource="{Binding BrowserList}" Margin="0,0,0,0">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Detected browsers" Width="*"  Binding="{Binding BrowserName}" IsReadOnly="True" />
+                <DataGridCheckBoxColumn Header="OK to Close" Width="Auto" Binding="{Binding BrowserCheckbox}"></DataGridCheckBoxColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <Button Grid.Column="2" Grid.Row="3" Content="Start" IsEnabled="{Binding StartBtnStatus}" HorizontalAlignment="Stretch" Margin="0,10,0,0" VerticalAlignment="Top" Height="60" Click="StartBtn_Click"/>
+        <Button Grid.Column="3" Grid.Row="3" Content="Stop" IsEnabled="{Binding StopBtnStatus}" HorizontalAlignment="Stretch" Margin="0,10,0,0" VerticalAlignment="Top" Height="60" Click="StopBtn_Click" />
+        <TextBlock Grid.Column="2" Grid.Row="3" Name="TimeLeft" FontSize="20" HorizontalAlignment="Left" Margin="5,108,0,0" TextWrapping="Wrap" Text="00:00:00" VerticalAlignment="Top" Grid.ColumnSpan="2" Width="131"/>
+        <TextBlock Grid.Column="2" Grid.Row="3"  HorizontalAlignment="Left" Margin="5,92,0,0" TextWrapping="Wrap" Text="Time left :" VerticalAlignment="Top" Height="16" Width="131" Grid.ColumnSpan="2"/>
+
+        <!-- Blocking time settings -->
+        <Grid Grid.Column="1" Grid.Row="2" Margin="0,5,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*"/>
+                <ColumnDefinition Width="0.5*"/>
+                <ColumnDefinition Width="1.5*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Block these sites for :"  Width="Auto" HorizontalAlignment="Stretch" />
+            <TextBox Grid.Column="1" Name="TimeSet" HorizontalAlignment="Stretch" VerticalAlignment="Top" Height="26" Text="0" />
+            <TextBlock Grid.Column="2" Text=" seconds" HorizontalAlignment="Left"  VerticalAlignment="Top" Height="26" Width="53" />
+        </Grid>
+
+        <Expander Header="Click to see Logs" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="3" Padding="0" Margin="0,10,0,0" >
+            <ScrollViewer Name="LogScrollViewer" Padding="0" MaxHeight="300" MinHeight="100">
+                <TextBox IsReadOnly="true" Padding="5,0,5,0" TextWrapping="Wrap" Background="Black"
+                         Foreground="White" Text="{Binding Log, Mode=OneWay}"
+                         SizeChanged="TextBlock_SizeChanged" />
+            </ScrollViewer>
+        </Expander>
+
     </Grid>
 </Window>
 

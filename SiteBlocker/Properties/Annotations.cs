@@ -201,8 +201,8 @@ namespace SiteBlocker.Properties
   /// <p>Function Definition Table syntax:</p>
   /// <list>
   /// <item>FDT      ::= FDTRow [;FDTRow]*</item>
-  /// <item>FDTRow   ::= Input =&gt; Output | Output &lt;= Input</item>
-  /// <item>Input    ::= ParameterName: Value [, Input]*</item>
+  /// <item>FDTRow   ::= UrlList =&gt; Output | Output &lt;= UrlList</item>
+  /// <item>UrlList    ::= ParameterName: Value [, UrlList]*</item>
   /// <item>Output   ::= [ParameterName: Value]* {halt|stop|void|nothing|Value}</item>
   /// <item>Value    ::= true | false | null | notnull | canbenull</item>
   /// </list>
