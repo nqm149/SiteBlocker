@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -50,10 +51,10 @@ namespace SiteBlocker
             }
         }
 
-        public void CloseWindow(object sender, CancelEventArgs cancelEventArgs)
+        public async Task CloseWindowAsync(object sender, CancelEventArgs cancelEventArgs)
         {
             //return original content to hosts file
-            RestoreHostsFile();
+            await RestoreHostsFileAsync();
         }
         private void AddUrl()
         {
@@ -112,17 +113,14 @@ namespace SiteBlocker
 
                     foreach (var p in processes)
                     {
-                        //                        p.CloseMainWindow();
-                        //                        p.Close();
                         try
                         {
-                            p.Kill();
-                            p.WaitForExit();
+                            if (p.HasExited == false)
+                                p.Kill();
                         }
-                        catch (Exception e)
+                        catch (Exception ex)
                         {
-                            Debug.WriteLine(e);
-                            // ignore this exception
+                            Debug.WriteLine(ex.Message);
                         }
                         
                     }
@@ -166,9 +164,9 @@ namespace SiteBlocker
             Model.NewUri = string.Empty;
         }
 
-        private void StopBtn_Click(object sender, RoutedEventArgs e)
+        private async void StopBtn_ClickAsync(object sender, RoutedEventArgs e)
         {
-            RestoreHostsFile();
+            await RestoreHostsFileAsync();
             MessageBox.Show(Const.OK_TO_ACCESS_MSG);
 
             _timer?.Stop();
@@ -184,10 +182,12 @@ namespace SiteBlocker
 
         private Process[] GetAllProcessesByName(string processName) => Process.GetProcessesByName(processName);
 
-        private void RestoreHostsFile()
+        private async Task RestoreHostsFileAsync()
         {
             using (var sw = new StreamWriter(Const.HostsPath, false))
-                sw.WriteAsync(_originalContent);
+            {
+                await sw.WriteAsync(_originalContent);
+            }
             Model.AddLogLine(Const.RESTORE_HOSTS_FILE_MSG);
         }
 
