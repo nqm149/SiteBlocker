@@ -51,10 +51,10 @@ namespace SiteBlocker
             }
         }
 
-        public async Task CloseWindowAsync(object sender, CancelEventArgs cancelEventArgs)
+        public void CloseWindow(object sender, CancelEventArgs cancelEventArgs)
         {
             //return original content to hosts file
-            await RestoreHostsFileAsync();
+            RestoreHostsFile();
         }
         private void AddUrl()
         {
@@ -164,9 +164,9 @@ namespace SiteBlocker
             Model.NewUri = string.Empty;
         }
 
-        private async void StopBtn_ClickAsync(object sender, RoutedEventArgs e)
+        private void StopBtn_Click(object sender, RoutedEventArgs e)
         {
-            await RestoreHostsFileAsync();
+            RestoreHostsFile();
             MessageBox.Show(Const.OK_TO_ACCESS_MSG);
 
             _timer?.Stop();
@@ -182,11 +182,11 @@ namespace SiteBlocker
 
         private Process[] GetAllProcessesByName(string processName) => Process.GetProcessesByName(processName);
 
-        private async Task RestoreHostsFileAsync()
+        private void RestoreHostsFile()
         {
             using (var sw = new StreamWriter(Const.HostsPath, false))
             {
-                await sw.WriteAsync(_originalContent);
+                sw.WriteAsync(_originalContent);
             }
             Model.AddLogLine(Const.RESTORE_HOSTS_FILE_MSG);
         }
@@ -194,7 +194,7 @@ namespace SiteBlocker
         private void BlockSite()
         {
             //then do the magic
-            var time = TimeSpan.FromSeconds(int.Parse(TimeSet.Text));
+            var time = TimeSpan.FromSeconds(GetTimeBySeconds());
 
             try
             {
@@ -207,8 +207,8 @@ namespace SiteBlocker
                     }
                 }
 
-                MessageBox.Show($"Sites will be blocked for {TimeSet.Text} seconds ! Click \"Stop\" to access again. ");
-                Model.AddLogLine($"Sites will be blocked for {TimeSet.Text} seconds ! Click \"Stop\" to access again. ");
+                MessageBox.Show($"Sites will be blocked now ! Click \"Stop\" to access again. ");
+                Model.AddLogLine($"Sites will be blocked now ! Click \"Stop\" to access again. ");
             }
             catch (Exception exception)
             {
@@ -257,25 +257,30 @@ namespace SiteBlocker
                 return false;
             }
 
-            var validateResult = ValidateTime(TimeSet.Text);
-            if (validateResult.IsOK == false)
+            var validateSecondsResult = ValidateTime(TimeSet_Seconds.Text, 60);
+            var validateMinutesResult = ValidateTime(TimeSet_Minutes.Text, 60);
+            var validateHoursResult = ValidateTime(TimeSet_Hours.Text, 24);
+
+            if (validateSecondsResult.IsOK && validateMinutesResult.IsOK && validateHoursResult.IsOK)
             {
-                MessageBox.Show(validateResult.Message);
+                return true;
+            }
+            else
+            {
+                MessageBox.Show(Const.INPUT_TIME_WARNING_MSG);
                 return false;
             }
-
-            return true;
         }
 
-        private ValidateResult ValidateTime(string time)
+        private ValidateResult ValidateTime(string time, int limit)
         {
             try
             {
                 int.TryParse(time, out var intTime);
-                if (intTime > 0)
-                    return new ValidateResult(true, "", intTime);
-                else
+                if (intTime < 0 || intTime > limit)
                     return new ValidateResult(false, Const.INPUT_TIME_WARNING_MSG, 0);
+                else
+                    return new ValidateResult(true, "", intTime);
             }
             catch (FormatException e)
             {
@@ -297,6 +302,17 @@ namespace SiteBlocker
             if (Model.BrowserList.Count == 0)
                 Model.BrowserList.Add(new BrowserItem("No browser was detected. Please scan again.", false));
         }
+
+        private int GetTimeBySeconds()
+        {
+            var seconds = int.Parse(TimeSet_Seconds.Text);
+            var minutes = int.Parse(TimeSet_Minutes.Text);
+            var hours = int.Parse(TimeSet_Hours.Text);
+
+            return seconds + minutes * 60 + hours * 3600;
+
+        }
+
     }
 
 }
